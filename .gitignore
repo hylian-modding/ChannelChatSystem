@@ -1,0 +1,7 @@
+build/
+node_modules/
+dist/
+modloader64-p2-config.json
+modloader64-config.json
+modloader64-config.json
+TODO.md
