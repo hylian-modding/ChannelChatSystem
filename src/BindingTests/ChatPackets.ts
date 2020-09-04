@@ -1,5 +1,5 @@
 import { Packet, packetHelper, UDPPacket} from 'modloader64_api/ModLoaderDefaultImpls';
-import { ChatChannel, ChatterInfo, ChatMessage } from './ChatData'
+import { ChatChannel, ChatterInfo, ChatMessage, CommandMessage } from './ChatData'
 import { sign } from 'crypto';
 import { throws } from 'assert';
 
@@ -10,6 +10,15 @@ export class ChatMessagePacket extends Packet {
 
     constructor(message: ChatMessage) {
         super('chatMessage', 'irc', GLOBAL_LOBBY, false)
+        this.message = message
+    }
+}
+
+export class CommandMessagePacket extends Packet {
+    message: CommandMessage
+
+    constructor(message: CommandMessage) {
+        super('commandMessage', 'irc', GLOBAL_LOBBY, false)
         this.message = message
     }
 }

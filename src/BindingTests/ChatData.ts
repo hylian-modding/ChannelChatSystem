@@ -1,5 +1,14 @@
 import { throws } from "assert"
 
+export const ClientCommands: string[] = [
+    "/?",
+    "/help",
+]
+
+export const ServerCommands: string[] = [
+    "/tell",
+]
+
 export class ChatterInfo {
     uuid: string
     account: string
@@ -24,6 +33,22 @@ export class ChatMessage {
         this.chatter_info = chatter_info
         this.timestamp = timestamp
         this.message = message
+        this.channel_id = channel_id
+    }
+}
+
+export class CommandMessage {
+    chatter_info: ChatterInfo
+    timestamp: Date
+    command: string
+    args: string[]
+    channel_id: string
+
+    constructor(chatter_info: ChatterInfo, timestamp: Date, command: string, args: string[], channel_id: string) {
+        this.chatter_info = chatter_info
+        this.timestamp = timestamp
+        this.command = command
+        this.args = args
         this.channel_id = channel_id
     }
 }
