@@ -40,7 +40,8 @@ class ChatWindow {
 }
 
 const HelpText: string = 
-`/? or /help: Display this page.`
+`/? or /help: Display this page.
+/joinchannel <channel name>: Joins channel <channel name>`
 // /tell <player name> <message>: Sends <player name> a private message containing <message>`
 
 export class Client {
@@ -207,16 +208,26 @@ export class Client {
                             let commandMessage: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
                             this.cwind_context.channels[this.current_channel].messages.push(commandMessage)
                             
-                            let command: string = commandMessage.message.match(/^\/\S+/)![0]
+                            let command: RegExpMatchArray = commandMessage.message.match(/"([^"]+)"|'([^']+)'|\S+/g)!
 
-                            if(!ServerCommands.includes(command)){ // If it's NOT a server command
-                                switch (command){
+                            if(!ServerCommands.includes(command[0])){ // If it's NOT a server command
+                                switch (command[0]){
                                     // Commands the client can handle
                                     case ClientCommands[0]: // /?
                                     case ClientCommands[1]:{ // /help
                                         let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
                                         let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), HelpText, this.current_channel)
                                         this.cwind_context.channels[this.current_channel].messages.push(responseMessage)
+                                        break
+                                    }
+                                    case ClientCommands[2]:{ // /joinchannel
+                                        if(command.length >= 2){
+                                            // TODO: Implement channel joining. Not sure how that's set up yet. command[1] is the channel name
+                                        } else {
+                                            let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
+                                            let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), "Usage: /joinchannel <channel name>", this.current_channel)
+                                            this.cwind_context.channels[this.current_channel].messages.push(responseMessage)
+                                        }
                                         break
                                     }
                                     // Invalid Commands

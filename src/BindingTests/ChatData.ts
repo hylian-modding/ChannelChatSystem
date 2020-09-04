@@ -3,6 +3,7 @@ import { throws } from "assert"
 export const ClientCommands: string[] = [
     "/?",
     "/help",
+    "/joinchannel",
 ]
 
 export const ServerCommands: string[] = [
