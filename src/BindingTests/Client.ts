@@ -7,7 +7,6 @@ import { NetworkHandler } from 'modloader64_api/NetworkHandler';
 import { bool_ref, Col, Dir, HoveredFlags, IImGui, InputTextFlags, number_ref, string_ref, TabBarFlags, TabItemFlags, WindowFlags } from 'modloader64_api/Sylvain/ImGui';
 import { rgba, vec4, xy } from 'modloader64_api/Sylvain/vec';
 import { throws } from 'assert';
-import Server from './Server';
 
 class ChatTabItem {
     active: bool_ref = [true]
