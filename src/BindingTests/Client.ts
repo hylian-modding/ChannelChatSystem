@@ -211,7 +211,7 @@ export class Client {
                             let command: RegExpMatchArray = commandMessage.message.match(/"([^"]+)"|'([^']+)'|\S+/g)!
 
                             if(!ServerCommands.includes(command[0])){ // If it's NOT a server command
-                                switch (command[0]){
+                                switch (command.shift()){
                                     // Commands the client can handle
                                     case ClientCommands[0]: // /?
                                     case ClientCommands[1]:{ // /help
@@ -221,8 +221,9 @@ export class Client {
                                         break
                                     }
                                     case ClientCommands[2]:{ // /joinchannel
-                                        if(command.length >= 2){
-                                            // TODO: Implement channel joining. Not sure how that's set up yet. command[1] is the channel name
+                                        if(command.length >= 1){
+                                            this.ModLoader.clientSide.sendPacket(new JoinLeaveChannelPacket(command.join(" "), true))
+                                            this.ModLoader.clientSide.sendPacket(new QueryChannelPacket({} as any as undefined, command.join(" ")))
                                         } else {
                                             let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
                                             let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), "Usage: /joinchannel <channel name>", this.current_channel)
