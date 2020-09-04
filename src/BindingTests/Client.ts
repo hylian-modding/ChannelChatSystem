@@ -1,8 +1,8 @@
 import { Init, Preinit, Postinit, onTick, onViUpdate } from 'modloader64_api/PluginLifecycle';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import { ChatChannel,  ChatMessage, ChatterInfo, CommandMessage, ClientCommands, ServerCommands } from './ChatData';
-import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket, CommandMessagePacket } from './ChatPackets';
+import { ChatChannel,  ChatMessage, ChatterInfo, ClientCommands, ServerCommands } from './ChatData';
+import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket } from './ChatPackets';
 import { NetworkHandler } from 'modloader64_api/NetworkHandler';
 import { bool_ref, Col, Dir, HoveredFlags, IImGui, InputTextFlags, number_ref, string_ref, TabBarFlags, TabItemFlags, WindowFlags } from 'modloader64_api/Sylvain/ImGui';
 import { rgba, vec4, xy } from 'modloader64_api/Sylvain/vec';
@@ -205,24 +205,13 @@ export class Client {
                         let isCommand = /^\//.test(this.cwind_context.channel_tabs[this.current_channel].input_text[0])
                         if(isCommand){
                             // Command Handler
-                            let command: string = ""
-                            let args: string[] = []
-                            let matches = this.cwind_context.channel_tabs[this.current_channel].input_text[0].matchAll(/'([^']+)'|"([^"]+)"|\S+/g)
-                            let matchValue: any
+                            let commandMessage: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
+                            this.cwind_context.channels[this.current_channel].messages.push(commandMessage)
+                            
+                            let command: string = commandMessage.message.match(/^\/\S+/)![0]
 
-                            while((matchValue = matches.next().value) !== undefined){
-                                if(command === ""){
-                                    command = matchValue[0]
-                                } else {
-                                    args.push(matchValue[0])
-                                }
-                            }
-
-                            let commandMessage: CommandMessage = new CommandMessage(this.chatter, new Date(), command, args, this.current_channel)
-                            let localMessage: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
-                            this.cwind_context.channels[this.current_channel].messages.push(localMessage)
-                            if(!ServerCommands.includes(commandMessage.command)){ // If it's NOT a server command
-                                switch (commandMessage.command){
+                            if(!ServerCommands.includes(command)){ // If it's NOT a server command
+                                switch (command){
                                     // Commands the client can handle
                                     case ClientCommands[0]: // /?
                                     case ClientCommands[1]:{ // /help
@@ -240,7 +229,7 @@ export class Client {
                                     }
                                 }
                             } else { // If it IS a server command 
-                                let commandPacket: CommandMessagePacket = new CommandMessagePacket(commandMessage)
+                                let commandPacket: ChatMessagePacket = new ChatMessagePacket(commandMessage, true)
                                 this.ModLoader.clientSide.sendPacket(commandPacket)
                             }
                             

@@ -37,22 +37,6 @@ export class ChatMessage {
     }
 }
 
-export class CommandMessage {
-    chatter_info: ChatterInfo
-    timestamp: Date
-    command: string
-    args: string[]
-    channel_id: string
-
-    constructor(chatter_info: ChatterInfo, timestamp: Date, command: string, args: string[], channel_id: string) {
-        this.chatter_info = chatter_info
-        this.timestamp = timestamp
-        this.command = command
-        this.args = args
-        this.channel_id = channel_id
-    }
-}
-
 export class ChatChannel {
     id: string
     friendly_name: string

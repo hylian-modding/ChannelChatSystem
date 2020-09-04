@@ -8,7 +8,7 @@ import { throws } from 'assert';
 import { BindingTests } from './Main';
 import ChatStorage from './ChatStorage';
 import ChatChannel, { ChatMessage, ChatterInfo, ServerCommands } from './ChatData';
-import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket, CommandMessagePacket } from './ChatPackets';
+import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket } from './ChatPackets';
 import { Init, Postinit } from 'modloader64_api/PluginLifecycle';
 
 export class Server {
@@ -99,10 +99,11 @@ export class Server {
     }
 
     @ServerNetworkHandler('commandMessage')
-    onCommandMessage(packet: CommandMessagePacket) {
-        this.ModLoader.logger.warn("[SERVER]: Recieved command in channel " + packet.message.channel_id + ", command: " + packet.message.command)
+    onCommandMessage(packet: ChatMessagePacket) {
+        let command: RegExpMatchArray = packet.message.message.match(/"([^"]+)"|'([^']+)'|\S+/g)!
 
-        switch (packet.message.command){
+        this.ModLoader.logger.warn("[SERVER]: Recieved command in channel " + packet.message.channel_id + ", command: " + command[0])
+        switch (command[0]){
             // case (ServerCommands[0]):{ // /tell
             //     if(packet.message.args.length >= 2){ // If it has enough arguments or more
             //         let toPlayer: string | undefined = packet.message.args.shift() // Grr, it won't be undefined but typescript won't let me just shift()
