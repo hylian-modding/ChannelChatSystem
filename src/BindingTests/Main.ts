@@ -14,8 +14,6 @@ import { Server } from './Server';
         - Markdown-style text rendering
             - Emotes
 
-        - Commands (such as '/joinchannel hax' and '/tell Smurf Pappa')
-
         - Message options (The ability to copy a message, or click on a user's message to shortcut things like '/tell [user] and '/block [user]')
 
         - Message streaming. We probably don't need every user to download the whole message history of a channel, I imagine this could get big with global channels, so streaming messages based on the viewport is more optimal

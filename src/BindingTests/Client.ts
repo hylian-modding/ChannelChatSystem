@@ -222,8 +222,8 @@ export class Client {
                                     }
                                     case ClientCommands[2]:{ // /joinchannel
                                         if(command.length >= 1){
-                                            this.ModLoader.clientSide.sendPacket(new JoinLeaveChannelPacket(command.join(" "), true))
-                                            this.ModLoader.clientSide.sendPacket(new QueryChannelPacket({} as any as undefined, command.join(" ")))
+                                            this.ModLoader.clientSide.sendPacket(new JoinLeaveChannelPacket(command.join(" ").replace(" ", "_"), true))
+                                            this.ModLoader.clientSide.sendPacket(new QueryChannelPacket({} as any as undefined, command.join(" ").replace(" ", "_")))
                                         } else {
                                             let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
                                             let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), "Usage: /joinchannel <channel name>", this.current_channel)
