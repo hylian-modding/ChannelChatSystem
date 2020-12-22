@@ -1,7 +1,7 @@
 import { Init, Preinit, Postinit, onTick, onViUpdate } from 'modloader64_api/PluginLifecycle';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import { ChatChannel,  ChatMessage, ChatterInfo } from './ChatData';
+import { ChatChannel,  ChatMessage, ChatterInfo, ClientCommands, ServerCommands } from './ChatData';
 import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket } from './ChatPackets';
 import { NetworkHandler } from 'modloader64_api/NetworkHandler';
 import { bool_ref, Col, Dir, HoveredFlags, IImGui, InputTextFlags, number_ref, string_ref, TabBarFlags, TabItemFlags, WindowFlags } from 'modloader64_api/Sylvain/ImGui';
@@ -38,6 +38,11 @@ class ChatWindow {
     custom_style_text_debug_uuid: vec4 = rgba(48, 128, 24, 200)
     custom_style_text_timestamp: vec4 = rgba(24, 48, 128, 200)
 }
+
+const HelpText: string = 
+`/? or /help: Display this page.
+/joinchannel <channel name>: Joins channel <channel name>`
+// /tell <player name> <message>: Sends <player name> a private message containing <message>`
 
 export class Client {
     @ModLoaderAPIInject() ModLoader!: IModLoaderAPI;
@@ -196,12 +201,62 @@ export class Client {
                 if (this.ImGui.inputTextWithHint("##chatbar", "Start typing to chat. Use /? for commands.", this.cwind_context.channel_tabs[this.current_channel].input_text, InputTextFlags.EnterReturnsTrue))
                 {
                     if (this.cwind_context.channel_tabs[this.current_channel].input_text[0] !== "") {
-                        let message: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
-                        let packet: ChatMessagePacket = new ChatMessagePacket(message)
-                        this.ModLoader.clientSide.sendPacket(packet)
-                        this.cwind_context.channel_tabs[this.current_channel].input_text = [""]
-                        this.cwind_context.channels[this.current_channel].messages.push(message)
-                        this.cwind_context.delete_me_new_message_fuck = true
+                        // Regex test to see if the string starts with "/"
+                        let isCommand = /^\//.test(this.cwind_context.channel_tabs[this.current_channel].input_text[0])
+                        if(isCommand){
+                            // Command Handler
+                            let commandMessage: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
+                            this.cwind_context.channels[this.current_channel].messages.push(commandMessage)
+                            
+                            let command: RegExpMatchArray = commandMessage.message.match(/"([^"]+)"|'([^']+)'|\S+/g)!
+
+                            if(!ServerCommands.includes(command[0])){ // If it's NOT a server command
+                                switch (command.shift()){
+                                    // Commands the client can handle
+                                    case ClientCommands[0]: // /?
+                                    case ClientCommands[1]:{ // /help
+                                        let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
+                                        let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), HelpText, this.current_channel)
+                                        this.cwind_context.channels[this.current_channel].messages.push(responseMessage)
+                                        break
+                                    }
+                                    case ClientCommands[2]:{ // /joinchannel
+                                        if(command.length >= 1){
+                                            this.ModLoader.clientSide.sendPacket(new JoinLeaveChannelPacket(command.join(" ").replace(" ", "_"), true))
+                                            this.ModLoader.clientSide.sendPacket(new QueryChannelPacket({} as any as undefined, command.join(" ").replace(" ", "_")))
+                                        } else {
+                                            let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
+                                            let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), "Usage: /joinchannel <channel name>", this.current_channel)
+                                            this.cwind_context.channels[this.current_channel].messages.push(responseMessage)
+                                        }
+                                        break
+                                    }
+                                    // Invalid Commands
+                                    default:{
+                                        let chatter: ChatterInfo = new ChatterInfo(this.chatter.uuid, this.chatter.account, "Command", this.chatter.account_flags)
+                                        let responseMessage: ChatMessage = new ChatMessage(chatter, new Date(), "Error: Invalid Command", this.current_channel)
+                                        this.cwind_context.channels[this.current_channel].messages.push(responseMessage)
+                                        break
+                                    }
+                                }
+                            } else { // If it IS a server command 
+                                let commandPacket: ChatMessagePacket = new ChatMessagePacket(commandMessage, true)
+                                this.ModLoader.clientSide.sendPacket(commandPacket)
+                            }
+                            
+                            this.cwind_context.channel_tabs[this.current_channel].input_text = [""]
+                            this.cwind_context.delete_me_new_message_fuck = true
+                            // If it's a command for the server to handle
+                            // If it's an invalid command
+                        } else {
+                            // Normal Message
+                            let message: ChatMessage = new ChatMessage(this.chatter, new Date(), this.cwind_context.channel_tabs[this.current_channel].input_text[0], this.current_channel)
+                            let packet: ChatMessagePacket = new ChatMessagePacket(message)
+                            this.ModLoader.clientSide.sendPacket(packet)
+                            this.cwind_context.channel_tabs[this.current_channel].input_text = [""]
+                            this.cwind_context.channels[this.current_channel].messages.push(message)
+                            this.cwind_context.delete_me_new_message_fuck = true
+                        }
                     }
                 }
             }

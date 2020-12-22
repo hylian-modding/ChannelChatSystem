@@ -7,7 +7,7 @@ import { Packet } from 'modloader64_api/ModLoaderDefaultImpls';
 import { throws } from 'assert';
 import { BindingTests } from './Main';
 import ChatStorage from './ChatStorage';
-import ChatChannel, { ChatMessage, ChatterInfo } from './ChatData';
+import ChatChannel, { ChatMessage, ChatterInfo, ServerCommands } from './ChatData';
 import { ChatMessagePacket, JoinLeaveChannelPacket, QueryChannelPacket, RequestChatterInfoPacket } from './ChatPackets';
 import { Init, Postinit } from 'modloader64_api/PluginLifecycle';
 
@@ -96,6 +96,31 @@ export class Server {
 
         this.storage.channels[packet.message.channel_id].messages.push(packet.message)
         this.send_update_to_channel(packet, packet.message.channel_id)
+    }
+
+    @ServerNetworkHandler('commandMessage')
+    onCommandMessage(packet: ChatMessagePacket) {
+        let command: RegExpMatchArray = packet.message.message.match(/"([^"]+)"|'([^']+)'|\S+/g)!
+
+        this.ModLoader.logger.warn("[SERVER]: Recieved command in channel " + packet.message.channel_id + ", command: " + command[0])
+        switch (command[0]){
+            // case (ServerCommands[0]):{ // /tell
+            //     if(packet.message.args.length >= 2){ // If it has enough arguments or more
+            //         let toPlayer: string | undefined = packet.message.args.shift() // Grr, it won't be undefined but typescript won't let me just shift()
+            //         toPlayer = toPlayer || ""
+            //         let message: string = packet.message.args.join(" ")
+
+            //         if(/'([^']+)'|"([^"]+)"/.test(toPlayer)){
+            //             toPlayer = 
+            //         }
+            //     } else { // If it doesn't have the required arguments
+
+            //     }
+            //     break
+            // }
+
+            // Pausing work on the /tell command for now, until DM's are implemented. When it is, /tell will probably just open a DM
+        }
     }
 
     @ServerNetworkHandler('queryChannel')

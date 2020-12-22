@@ -8,8 +8,9 @@ const GLOBAL_LOBBY = "__GLOBAL__"
 export class ChatMessagePacket extends Packet {
     message: ChatMessage
 
-    constructor(message: ChatMessage) {
-        super('chatMessage', 'irc', GLOBAL_LOBBY, false)
+    constructor(message: ChatMessage, command?: boolean) {
+        let messageType: string = (command || false) ? 'commandMessage' : 'chatMessage'
+        super(messageType, 'irc', GLOBAL_LOBBY, false)
         this.message = message
     }
 }
